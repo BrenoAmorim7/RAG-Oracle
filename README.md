@@ -25,7 +25,7 @@ Recursive Character Text Splitter (chunks de ~500 caracteres)
 Embeddings (Cohere - embed-multilingual-v3.0)
         │
         ▼
-Pinecone (índice vetorial: llama-text-embed-v2-index)
+Pinecone (índice vetorial:  openai/gpt-oss-20b)
 ```
 
 ### 2. Fluxo de resposta a uma pergunta
@@ -67,7 +67,7 @@ Página web estática (HTML/CSS/JS puro, sem framework) que se comunica diretame
 | Banco vetorial | Pinecone |
 | Fonte dos documentos | Google Drive |
 | Interface | HTML, CSS e JavaScript puro |
-| Deploy da interface | Oracle Cloud Infrastructure (OCI) |
+| Deploy da interface | Git Hub Pages |
 
 ## Como executar o projeto
 
