@@ -1,0 +1,385 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -688,
+        -512
+      ],
+      "id": "82ba719a-b003-46b2-a491-707917a3abd2",
+      "name": "When chat message received",
+      "webhookId": "9afb5a72-1d04-4fc5-bb41-958ae7e476c9"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# PAPEL\nVocê é um assistente virtual especializado em atendimento ao cliente e suporte a colaboradores de um supermercado. Seu objetivo é responder dúvidas dos usuários usando APENAS as informações encontradas na ferramenta de busca (Pinecone),nao precisa dizer ao usuario que voce pega do pinecone,so diga que é um assistente virtual do suporte do mercado e estara la para tirar as duvidas seguindo as diretrizes e a documentação do mercado.\n\n# DIRETIREZES DE RESPOSTA\n1. Seja claro, conciso e amigável.\n2. Limite suas respostas a no máximo 2 ou 3 parágrafos curtos (ou até 4 bullet points).\n3. Vá direto ao ponto. Não use saudações longas, desculpas desnecessárias ou encerramentos genéricos como \"Estou aqui se precisar de algo mais!\".\n4. Se a informação não estiver nos documentos do Pinecone, diga honestamente: \"Não encontrei essa informação na minha base de dados para te responder com precisão.\"\n\n# FORMATO\n- Use marcadores (bullet points) para listas, passos a passo ou dados numéricos.\n- Use negrito apenas para destacar palavras-chave importantes."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -464,
+        -352
+      ],
+      "id": "562a564f-45d5-421a-92f8-5427fdd571db",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -288,
+        -128
+      ],
+      "id": "de73988c-b458-4f77-95b1-7648e75852e4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "modelName": "embed-multilingual-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        -96
+      ],
+      "id": "0ae54c91-f209-45b9-aaef-94b2ca9e7478",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "hV8s0mlPACqVmJVo",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "loader": "pdfLoader",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -720,
+        -208
+      ],
+      "id": "ec91a1a6-b963-4991-b50d-d9f2b161f528",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "llama-text-embed-v2-index",
+          "mode": "list",
+          "cachedResultName": "llama-text-embed-v2-index"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -896,
+        -352
+      ],
+      "id": "9db0be44-f15e-4ccd-8c90-a74e79dee312",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "e4DW2SV90AZ2sJGt",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1jS5xYu99p1ZL4mRrzB36fr1R28qI2sVh",
+            "mode": "list",
+            "cachedResultName": "database",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1jS5xYu99p1ZL4mRrzB36fr1R28qI2sVh"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1232,
+        -160
+      ],
+      "id": "495b29e0-2346-44c1-882c-66763ebbbb54",
+      "name": "Search files and folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YcRpt2whIXh12LzE",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{$json.id}}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1056,
+        -496
+      ],
+      "id": "3f5a50ac-006a-4504-80b7-4ceaf516bd23",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YcRpt2whIXh12LzE",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        48
+      ],
+      "id": "06ff3457-8923-46a4-bb16-512382274944",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Busca informações nos PDFs da base de conhecimento.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "llama-text-embed-v2-index",
+          "mode": "list",
+          "cachedResultName": "llama-text-embed-v2-index"
+        },
+        "topK": 3,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        -144
+      ],
+      "id": "db773dcb-a9ea-4b0e-9e2c-a13b4ef05651",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "e4DW2SV90AZ2sJGt",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-multilingual-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        80
+      ],
+      "id": "20f79cca-e5fb-453c-ab81-2850f87bba67",
+      "name": "Embeddings Cohere1",
+      "credentials": {
+        "cohereApi": {
+          "id": "hV8s0mlPACqVmJVo",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -160
+      ],
+      "id": "3f95ae33-fd05-4ee4-8979-f7fcf938a825",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "dx4SJN2svuwc9hFP",
+          "name": "Groq account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3763c3cb-3fa0-4c7a-b1b0-68bf635dc554",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "84930009858c8da89fe77f9841488e435c2dd033cc82942d8f2a3c8502085126"
+  },
+  "nodeGroups": [],
+  "id": "mfDw6zYZ763aGd8S",
+  "tags": []
+}
