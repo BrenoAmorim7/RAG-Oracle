@@ -132,4 +132,4 @@ A interface web (`index.html`) foi implantada na Oracle Cloud Infrastructure.
 
 ## Autor
 
-Breno — Projeto desenvolvido para o Challenge Alura Agente (Oracle Next Education - AI for Tech).
+Breno Nunes Amorim — Projeto desenvolvido para o Challenge Alura Agente (Oracle Next Education - AI for Tech).
