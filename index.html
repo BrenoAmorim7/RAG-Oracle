@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Assistente Virtual - Supermercado</title>
+<style>
+  :root {
+    --verde: #1f8a4c;
+    --verde-escuro: #146637;
+    --cinza-bg: #f2f4f3;
+    --cinza-borda: #dfe3e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--cinza-bg);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px;
+  }
+  .card {
+    background: #fff;
+    max-width: 680px;
+    width: 100%;
+    border-radius: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.08);
+    overflow: hidden;
+  }
+  header {
+    background: var(--verde);
+    color: #fff;
+    padding: 18px 20px;
+  }
+  header h1 { margin: 0; font-size: 1.15rem; }
+  header p { margin: 4px 0 0; font-size: .82rem; opacity: .9; }
+  .aviso-ia {
+    background: #fff7e0;
+    color: #6b5300;
+    font-size: .8rem;
+    padding: 8px 20px;
+    border-bottom: 1px solid #f0e0a0;
+  }
+  #chat {
+    height: 420px;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .msg { max-width: 82%; line-height: 1.45; font-size: .95rem; }
+  .msg.user { align-self: flex-end; }
+  .msg.bot { align-self: flex-start; }
+  .bolha {
+    padding: 10px 14px;
+    border-radius: 14px;
+    white-space: pre-wrap;
+  }
+  .msg.user .bolha { background: var(--verde); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot .bolha { background: var(--cinza-bg); color: #1a1a1a; border: 1px solid var(--cinza-borda); border-bottom-left-radius: 4px; }
+  .fontes {
+    margin-top: 6px;
+    font-size: .78rem;
+    color: #555;
+  }
+  .fontes b { color: #333; }
+  .acoes {
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .acoes button {
+    border: 1px solid var(--cinza-borda);
+    background: #fff;
+    border-radius: 8px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: .85rem;
+  }
+  .acoes button.ativo { background: var(--verde); color: #fff; border-color: var(--verde); }
+  .acoes span { font-size: .75rem; color: #888; }
+  form {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--cinza-borda);
+  }
+  input[type="text"] {
+    flex: 1;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--cinza-borda);
+    font-size: .95rem;
+  }
+  button[type="submit"] {
+    background: var(--verde);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 18px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button[type="submit"]:disabled { opacity: .6; cursor: default; }
+  .typing { color: #888; font-style: italic; font-size: .88rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <h1>🛒 Assistente Virtual do Supermercado</h1>
+    <p>Suporte para clientes e colaboradores</p>
+  </header>
+  <div class="aviso-ia">
+    ⚠️ Você está conversando com um <b>agente de inteligência artificial</b>, não com uma pessoa.
+    As respostas são geradas automaticamente com base nos documentos internos.
+  </div>
+
+  <div id="chat"></div>
+
+  <form id="form">
+    <input id="pergunta" type="text" placeholder="Digite sua pergunta..." autocomplete="off" required />
+    <button type="submit">Enviar</button>
+  </form>
+</div>
+
+<script>
+// ======= CONFIGURAÇÃO =======
+const WEBHOOK_URL = "https://brenonunesam.app.n8n.cloud/webhook/9afb5a72-1d04-4fc5-bb41-958ae7e476c9/chat";
+// =============================
+
+const chat = document.getElementById("chat");
+const form = document.getElementById("form");
+const input = document.getElementById("pergunta");
+
+// sessionId único por sessão de navegação, mantém o histórico de contexto no n8n
+let sessionId = sessionStorage.getItem("chat_session_id");
+if (!sessionId) {
+  sessionId = "web-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+  sessionStorage.setItem("chat_session_id", sessionId);
+}
+
+function extrairFontes(data) {
+  // Tenta achar as fontes independente do nome do campo usado no workflow
+  const candidatos = ["fontes", "sources", "documentos", "documents", "citations"];
+  for (const chave of candidatos) {
+    if (data[chave]) {
+      const valor = data[chave];
+      return Array.isArray(valor) ? valor.join(", ") : String(valor);
+    }
+  }
+  return null;
+}
+
+function extrairResposta(data) {
+  return data.output || data.text || data.resposta || data.answer || "Não consegui gerar uma resposta.";
+}
+
+function addMensagem(texto, tipo, fontes) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "msg " + tipo;
+
+  const bolha = document.createElement("div");
+  bolha.className = "bolha";
+  bolha.textContent = texto;
+  wrapper.appendChild(bolha);
+
+  if (tipo === "bot" && fontes) {
+    const fontesEl = document.createElement("div");
+    fontesEl.className = "fontes";
+    fontesEl.innerHTML = "<b>Fonte:</b> " + fontes;
+    wrapper.appendChild(fontesEl);
+  }
+
+  if (tipo === "bot" && texto !== "Digitando...") {
+    const acoes = document.createElement("div");
+    acoes.className = "acoes";
+    acoes.innerHTML = `
+      <button data-voto="up">👍</button>
+      <button data-voto="down">👎</button>
+      <span class="voto-status"></span>
+    `;
+    acoes.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        acoes.querySelectorAll("button").forEach(b => b.classList.remove("ativo"));
+        btn.classList.add("ativo");
+        acoes.querySelector(".voto-status").textContent = "Obrigado pelo feedback!";
+        // feedback fica registrado na sessão; para persistir de forma agregada,
+        // pode-se enviar esse voto para um segundo webhook n8n de "feedback"
+        console.log("Feedback registrado:", btn.dataset.voto, "| pergunta relacionada armazenada na sessão", sessionId);
+      });
+    });
+    wrapper.appendChild(acoes);
+  }
+
+  chat.appendChild(wrapper);
+  chat.scrollTop = chat.scrollHeight;
+  return wrapper;
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const pergunta = input.value.trim();
+  if (!pergunta) return;
+
+  addMensagem(pergunta, "user");
+  input.value = "";
+  form.querySelector("button").disabled = true;
+
+  const bolhaTyping = addMensagem("Digitando...", "bot");
+  bolhaTyping.querySelector(".bolha").classList.add("typing");
+
+  try {
+    const resp = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chatInput: pergunta, sessionId: sessionId }),
+    });
+
+    if (!resp.ok) throw new Error("Falha na requisição: " + resp.status);
+
+    const data = await resp.json();
+    const resposta = extrairResposta(data);
+    const fontes = extrairFontes(data);
+
+    bolhaTyping.remove();
+    addMensagem(resposta, "bot", fontes);
+  } catch (err) {
+    bolhaTyping.remove();
+    addMensagem("Desculpe, houve um erro ao falar com o agente. Tente novamente em instantes.", "bot");
+    console.error(err);
+  }
+
+  form.querySelector("button").disabled = false;
+  input.focus();
+});
+
+// Mensagem de boas-vindas
+addMensagem("Olá! Sou o assistente virtual do supermercado. Posso ajudar com dúvidas de clientes e colaboradores. Como posso ajudar?", "bot");
+</script>
+</body>
+</html>
