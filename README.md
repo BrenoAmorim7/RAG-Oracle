@@ -116,7 +116,8 @@ Página web estática (HTML/CSS/JS puro, sem framework) que se comunica diretame
 A interface web (`index.html`) foi implantada na Oracle Cloud Infrastructure.
 
 - **URL da aplicação:** `https://brenoamorim7.github.io/RAG-Oracle/`
-- **Print da aplicação em produção:** 
+- **Print da aplicação em produção: <img width="789" height="651" alt="image" src="https://github.com/user-attachments/assets/007edea8-bace-4794-b9b0-38a0c7ace9b1" />
+** 
 
 ## Estrutura do repositório
 
