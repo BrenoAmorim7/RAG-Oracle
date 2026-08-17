@@ -111,7 +111,7 @@
 <body>
 <div class="card">
   <header>
-    <h1>🛒 Assistente Virtual do Supermercado</h1>
+    <h1> Assistente Virtual do Supermercado</h1>
     <p>Suporte para clientes e colaboradores</p>
   </header>
   <div class="aviso-ia">
@@ -128,7 +128,7 @@
 </div>
 
 <script>
-// ======= CONFIGURAÇÃO =======
+
 const WEBHOOK_URL = "https://brenonunesam.app.n8n.cloud/webhook/9afb5a72-1d04-4fc5-bb41-958ae7e476c9/chat";
 // =============================
 
@@ -136,16 +136,14 @@ const chat = document.getElementById("chat");
 const form = document.getElementById("form");
 const input = document.getElementById("pergunta");
 
-// sessionId único por sessão de navegação, mantém o histórico de contexto no n8n
+
 let sessionId = sessionStorage.getItem("chat_session_id");
 if (!sessionId) {
   sessionId = "web-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
   sessionStorage.setItem("chat_session_id", sessionId);
 }
 
-function extrairFontes(data) {
-  // Tenta achar as fontes independente do nome do campo usado no workflow
-  const candidatos = ["fontes", "sources", "documentos", "documents", "citations"];
+function extrairFontes(data) {  const candidatos = ["fontes", "sources", "documentos", "documents", "citations"];
   for (const chave of candidatos) {
     if (data[chave]) {
       const valor = data[chave];
