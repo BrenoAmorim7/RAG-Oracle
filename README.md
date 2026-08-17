@@ -48,6 +48,8 @@ Resposta gerada em português, com base nos trechos encontrados
         ▼
 Exibida na interface web
 ```
+## workflow no n8n!
+<img width="1072" height="644" alt="image" src="https://github.com/user-attachments/assets/6c596e7a-d45a-4ce8-b79e-c41cabde06f0" />
 
 ### 3. Interface
 
